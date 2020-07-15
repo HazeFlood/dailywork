@@ -1,0 +1,153 @@
+/*************************************************************************
+	> File Name: avl.cpp
+	> Author: huguang
+	> Mail: hug@haizeix.com
+	> Created Time: 三  7/15 11:30:34 2020
+ ************************************************************************/
+
+#include <iostream>
+#include <cstdio>
+#include <cstdlib>
+#include <queue>
+#include <stack>
+#include <algorithm>
+#include <string>
+#include <map>
+#include <set>
+#include <vector>
+using namespace std;
+
+#define K(n) ((n) ? (n)->key : 0)
+#define H(n) ((n) ? (n)->h : 0)
+#define L(n) (n->lchild)
+#define R(n) (n->rchild)
+
+typedef struct Node {//结构定义
+    int key;//值
+    struct Node *lchild, *rchild;//左右子树
+    int h;//高度，AVL通过树高判断平衡
+} Node;
+
+Node *getNewNode(int key) {//初始化
+    Node *p = (Node *)malloc(sizeof(Node));
+    p->key = key;
+    p->lchild = p->rchild = NULL;
+    p->h = 1;//单个结点树高为1
+    return p;
+}
+
+void update_height(Node *root) {//更新树高
+    root->h = (H(L(root)) > H(R(root)) ? H(L(root)) : H(R(root))) + 1;//记录最高的树高
+    return ;
+}
+
+Node *left_rotate(Node *root) {//左旋
+    Node *temp = root->rchild;
+    root->rchild = temp->lchild;
+    temp->lchild = root;
+    update_height(root);
+    update_height(temp);
+    return temp;
+}
+
+Node *right_rotate(Node *root) {
+    Node *temp = root->lchild;
+    root->lchild = temp->rchild;
+    temp->rchild = root;
+    update_height(root);
+    update_height(temp);
+    return temp;
+}
+
+Node *maintain(Node *root) {//调整
+    if (abs(H(L(root)) - H(R(root))) <= 1) return root;//不用调整的情况
+    if (H(L(root)) > H(R(root))) {//第一个字母是L，最后要大左旋
+        if (H(R(L(root))) > H(L(L(root)))) {//小左旋
+            root->lchild = left_rotate(root->lchild);
+        }
+        root = right_rotate(root);
+    } else {//最后要大右旋
+        if (H(L(R(root))) > H(R(R(root)))) {//小右旋
+            root->rchild = right_rotate(root->rchild);
+        }
+        root = left_rotate(root);
+    }
+    return root;
+}
+
+Node *insert(Node *root, int key) {//插入
+    if (root == NULL) return getNewNode(key);
+    if (root->key == key) return root;
+    if (key < root->key) root->lchild = insert(root->lchild, key);
+    else root->rchild = insert(root->rchild, key);
+    update_height(root);//更新树高
+    return maintain(root);
+}
+
+Node *predecessor(Node *root) {//找前驱（例如20的前驱是19）
+    Node *temp = root->lchild;//在左子树中找
+    while (temp->rchild) temp = temp->rchild;//只要有向右的分支就往右边找
+    return temp;
+}
+
+Node *erase(Node *root, int key) {//删除操作
+    if (root == NULL) return NULL;
+    if (key < root->key) {
+        root->lchild = erase(root->lchild, key);
+    } else if (key > root->key) {
+        root->rchild = erase(root->rchild, key);
+    } else {
+        if (root->lchild == NULL || root->rchild == NULL) {//度为0或1
+            Node *temp = root->lchild ? root->lchild : root->rchild;
+            free(root);
+            return temp;
+        } else {//度为2
+            Node *temp = predecessor(root);
+            root->key = temp->key;
+            root->lchild = erase(root->lchild, temp->key);//在左子树中删除值为temp->key的结点
+        }
+    }
+    update_height(root);//更新树高
+    return maintain(root);
+}
+
+void clear(Node *root) {//销毁
+    if (root == NULL) return ;
+    clear(root->lchild);
+    clear(root->rchild);
+    free(root);
+    return ;
+}
+
+void output(Node *root) {
+    if (root == NULL) return ;
+    printf("(%d(%d) | %d, %d)\n", K(root), H(root), K(L(root)), K(R(root)));
+    output(L(root));
+    output(R(root));
+    return ;
+}
+
+void in_order(Node *root) {
+    if (root == NULL) return ;
+    in_order(root->lchild);
+    printf("%d ", K(root));
+    in_order(root->rchild);
+    return ;
+}
+
+int main() {
+    int op, val;
+    Node *root = NULL;
+    scanf("hello world");
+    while (~scanf("%d%d", &op, &val)) {
+        switch (op) {
+            case 1: root = insert(root, val); break;
+            case 2: root = erase(root, val); break;
+        }
+        printf("\n======= avl tree =======\n");
+        output(root);
+        in_order(root), printf("\n");
+        printf("======= avl tree end =======\n");
+    }
+    return 0;
+}
