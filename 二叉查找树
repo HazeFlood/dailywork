@@ -1,0 +1,105 @@
+/*************************************************************************
+	> File Name: binary_search_tree.cpp
+	> Author: huguang
+	> Mail: hug@haizeix.com
+	> Created Time: 三  7/15 09:50:54 2020
+ ************************************************************************/
+
+#include <iostream>
+#include <cstdio>
+#include <cstdlib>
+#include <queue>
+#include <stack>
+#include <algorithm>
+#include <string>
+#include <map>
+#include <set>
+#include <vector>
+using namespace std;
+
+#define K(n) ((n) ? (n)->key : 0)//返回值
+#define L(n) (n->lchild)//返回左子树地址
+#define R(n) (n->rchild)//返回右子树地址
+
+typedef struct Node {//存储结构
+    int key;//值
+    struct Node *lchild, *rchild;//左右结点
+} Node;
+
+Node *getNewNode(int key) {//结点初始化
+    Node *p = (Node *)malloc(sizeof(Node));//新开辟结点
+    p->key = key;
+    p->lchild = p->rchild = NULL;//左右子树指向空
+    return p;
+}
+
+Node *insert(Node *root, int key) {//插入操作，要返回节点地址
+    if (root == NULL) return getNewNode(key);//空树
+    if (key == root->key) return root;//假设没有重复节点
+    if (key < root->key) root->lchild = insert(root->lchild, key);//小于，向左子树插入
+    else root->rchild = insert(root->rchild, key);//大于，向右子树插入
+    return root;//返回根节点
+}
+
+Node *predecessor(Node *root) {//找前驱
+    Node *temp = root->lchild;//有右子树，就往右子树找
+    while (temp->rchild) temp = temp->rchild;
+    return temp;
+}
+
+Node *erase(Node *root, int key) {//删除操作
+    if (root == NULL) return NULL;//空树
+    if (key < root->key) root->lchild = erase(root->lchild, key);//小于，去左子树删除
+    else if (key > root->key) root->rchild = erase(root->rchild, key);//大于，去右子树删除
+    else {//该节点要删除
+        if (root->lchild == NULL || root->rchild == NULL) {//同时适用于度为0和度为1的结点
+            Node *temp = root->lchild ? root->lchild : root->rchild;
+            free(root);
+            return temp;//度为1时，temp指向被删除结点的孩子；度为0时指向空NULL
+        } else {//度为2的情况
+            Node *temp = predecessor(root);//找到当前结点前驱
+            root->key = temp->key;//把前驱的值替换到根结点
+            root->lchild = erase(root->lchild, temp->key);//到左子树中删除结点值为key的
+        }
+    }
+    return root;
+}
+
+void clear(Node *root) {//销毁子树
+    if (root == NULL) return ;
+    clear(root->lchild);//销毁左子树
+    clear(root->rchild);//销毁右子树
+    free(root); //释放根节点
+    return ;
+}
+
+void output(Node *root) {//输出树
+    if (root == NULL) return ;//空树
+    printf("(%d | %d, %d)\n", K(root), K(L(root)), K(R(root)));//输出当前结点值
+    output(L(root));//输出左子树
+    output(R(root));//输出右子树
+    return ;
+}
+
+void in_order(Node *root) {//中序遍历
+    if (root == NULL) return ;
+    in_order(root->lchild);
+    printf("%d ", K(root));
+    in_order(root->rchild);
+    return ;
+}
+
+int main() {
+    int op, val;
+    Node *root = NULL;
+    scanf("hello world");
+    while (~scanf("%d%d", &op, &val)) {
+        switch (op) {
+            case 1: root = insert(root, val); break;
+            case 2: root = erase(root, val); break;
+        }
+        output(root);
+        in_order(root), printf("\n");
+    }
+    return 0;
+}
