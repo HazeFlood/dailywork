@@ -1,0 +1,35 @@
+编写一个函数来查找字符串数组中的最长公共前缀。
+
+如果不存在公共前缀，返回空字符串 ""。
+
+示例 1:
+
+输入: ["flower","flow","flight"]
+输出: "fl"
+
+【来源：力扣（LeetCode）
+链接：https://leetcode-cn.com/problems/longest-common-prefix
+著作权归领扣网络所有。商业转载请联系官方授权，非商业转载请注明出处。】
+
+题解：
+class Solution(object):
+    def longestCommonPrefix(self, strs):
+        ans = ''
+        for i in zip(*strs):
+            if len(set(i)) == 1:
+                ans += i[0]
+            else:
+                break
+        return ans
+ 
+原理：
+>>> b = ["flower","flow","flight"]
+>>> z = zip(*b) #需要注意的是python3中zip返回的是一个对象
+>>> list(z)
+[('f', 'f', 'f'), ('l', 'l', 'l'), ('o', 'o', 'i'), ('w', 'w', 'g')]
+
+zip的作用：zip() 函数用于将可迭代的对象作为参数，将对象中对应的元素打包成一个个元组，然后返回由这些元组组成的对象，这样做的好处是节约了不少的内存。
+          我们可以使用 list() 转换来输出列表。
+          如果各个迭代器的元素个数不一致，则返回列表长度与最短的对象相同，利用 * 号操作符，可以将元组解压为列表。
+
+set的作用：创建一个无序不重复元素集，判断各个元组中不重复元素的个数，如果元素个数为1，说明该前缀是共有的，把该前缀加入ans
